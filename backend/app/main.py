@@ -1,5 +1,13 @@
 from fastapi import FastAPI
 
+from .database.database import Base, engine
+from .models.category import Category
+from .models.weekly_plan_item import WeeklyPlanItem
+from .models.weekly_plan import WeeklyPlan
+from .models.task import Task
+from .models.time_session import TimeSession
+Base.metadata.create_all(bind=engine)
+
 app = FastAPI(
     title="Time Paradox",
     description="Personal time planning and productivity tracking API",

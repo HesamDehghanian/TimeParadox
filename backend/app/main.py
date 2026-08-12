@@ -1,11 +1,13 @@
 from fastapi import FastAPI
 
 from .database.database import Base, engine
-from .models.category import Category
-from .models.weekly_plan_item import WeeklyPlanItem
-from .models.weekly_plan import WeeklyPlan
-from .models.task import Task
-from .models.time_session import TimeSession
+# from .models.category import Category
+# from .models.weekly_plan_item import WeeklyPlanItem
+# from .models.weekly_plan import WeeklyPlan
+# from .models.task import Task
+# from .models.time_session import TimeSession
+from backend.app.api.categories import router as categories_router
+from backend.app.models import Category, Task, TimeSession, WeeklyPlan, WeeklyPlanItem
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
@@ -13,6 +15,8 @@ app = FastAPI(
     description="Personal time planning and productivity tracking API",
     version="0.1.0",
 )
+
+app.include_router(categories_router)
 
 @app.get("/")
 def read_root():

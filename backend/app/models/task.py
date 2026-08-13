@@ -39,3 +39,8 @@ class Task(Base):
         "Category",
         backref="tasks",
     )
+    time_sessions = relationship(
+        "TimeSession",
+        back_populates="task",
+        cascade="all, delete-orphan",
+    )

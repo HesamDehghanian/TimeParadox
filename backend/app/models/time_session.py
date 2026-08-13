@@ -34,13 +34,7 @@ class TimeSession(Base):
         nullable=True,
     )
 
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime,
-        default=datetime.utcnow,
-        nullable=False,
-    )
-
     task = relationship(
         "Task",
-        backref="sessions",
+        back_populates="time_sessions",
     )

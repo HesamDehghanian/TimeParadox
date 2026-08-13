@@ -8,6 +8,7 @@ from .database.database import Base, engine
 # from .models.time_session import TimeSession
 from backend.app.api.categories import router as categories_router
 from backend.app.models import Category, Task, TimeSession, WeeklyPlan, WeeklyPlanItem
+from backend.app.api.tasks import router as tasks_router
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
@@ -17,6 +18,7 @@ app = FastAPI(
 )
 
 app.include_router(categories_router)
+app.include_router(tasks_router)
 
 @app.get("/")
 def read_root():

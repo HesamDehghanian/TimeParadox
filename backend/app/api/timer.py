@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from backend.app.database.database import SessionLocal
 from backend.app.models.task import Task
 from backend.app.models.time_session import TimeSession
-from backend.app.schemas.time_session import TimeSessionResponse
+from backend.app.schemas.time_session import TimeSessionResponse, ActiveTimerResponse
 
 
 router = APIRouter(
@@ -63,3 +63,26 @@ def stop_timer(db: Session = Depends(get_db)):
 
     return session
 
+@router.get("/active",response_model=ActiveTimerResponse)
+def get_active_timer(db: Session = Depends(get_db)):
+
+    session = db.query(TimeSession).filter(TimeSession.ended_at.is_(None)).first()
+    if not session:
+        return ActiveTimerResponse(active=False)
+
+    now = datetime.now(timezone.utc)
+
+    if session.started_at.tzinfo is None:
+        started_at_aware = session.started_at.replace(tzinfo=timezone.utc)
+    else:
+        started_at_aware = session.started_at
+
+    elapsed_seconds = int((now - started_at_aware).total_seconds())
+
+    return ActiveTimerResponse(
+        active=True,
+        task_id=session.task_id,
+        session_id=session.id,
+        started_at=session.started_at,
+        elapsed_seconds=elapsed_seconds,
+    )

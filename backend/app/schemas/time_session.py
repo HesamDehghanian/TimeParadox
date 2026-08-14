@@ -11,3 +11,10 @@ class TimeSessionResponse(BaseModel):
     duration_seconds: int | None
 
     model_config = ConfigDict(from_attributes=True)
+
+class ActiveTimerResponse(BaseModel):
+    active: bool
+    task_id: int | None = None
+    session_id: int | None = None
+    started_at: datetime | None = None
+    elapsed_seconds: int | None = None

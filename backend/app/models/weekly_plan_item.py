@@ -22,6 +22,11 @@ class WeeklyPlanItem(Base):
         nullable=False,
     )
 
+    day_of_week: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+    )
+
     planned_minutes: Mapped[int] = mapped_column(
         Integer,
         nullable=False,

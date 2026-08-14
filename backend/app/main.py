@@ -14,12 +14,23 @@ from backend.app.api.dashboard import router as dashboard_router
 from backend.app.api.weekly_plans import router as weekly_plans_router
 from backend.app.api.plans import router as plans_router
 
+from fastapi.middleware.cors import CORSMiddleware
+
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Time Paradox",
     description="Personal time planning and productivity tracking API",
     version="0.1.0",
+)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(categories_router)

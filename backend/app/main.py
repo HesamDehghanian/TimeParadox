@@ -12,6 +12,7 @@ from backend.app.api.tasks import router as tasks_router
 from backend.app.api.timer import router as timer_router
 from backend.app.api.dashboard import router as dashboard_router
 from backend.app.api.weekly_plans import router as weekly_plans_router
+from backend.app.api.plans import router as plans_router
 
 Base.metadata.create_all(bind=engine)
 
@@ -26,6 +27,7 @@ app.include_router(tasks_router)
 app.include_router(timer_router)
 app.include_router(dashboard_router)
 app.include_router(weekly_plans_router)
+app.include_router(plans_router)
 
 @app.get("/")
 def read_root():

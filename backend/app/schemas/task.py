@@ -28,3 +28,10 @@ class TaskResponse(TaskBase):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+class TaskProgressResponse(BaseModel):
+    task_id: int
+    planned_minutes: int
+    actual_minutes: float
+    remaining_minutes: float
+    progress_percentage: float

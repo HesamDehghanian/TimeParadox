@@ -6,6 +6,9 @@ from backend.app.database.database import SessionLocal
 from backend.app.models.category import Category
 from backend.app.models.task import Task
 from backend.app.schemas.task import TaskCreate,TaskResponse,TaskUpdate
+from sqlalchemy import func
+from backend.app.models.time_session import TimeSession
+from backend.app.schemas.task import TaskProgressResponse
 
 router = APIRouter(
     prefix="/api/tasks",
@@ -86,3 +89,40 @@ def delete_task(task_id: int, db: Session = Depends(get_db)):
 
     db.delete(task)
     db.commit()
+
+@router.get("/{task_id}/progress",response_model=TaskProgressResponse)
+def get_task_progress(task_id: int,db: Session = Depends(get_db)):
+
+    task = db.query(Task).filter(Task.id == task_id).first()
+    if not task:
+        raise HTTPException(status_code=404,detail="Task not found")
+
+    total_seconds = (
+        db.query(
+            func.coalesce(
+                func.sum(TimeSession.duration_seconds),
+                0,
+            )
+        )
+        .filter(
+            TimeSession.task_id == task_id,
+            TimeSession.duration_seconds.is_not(None),
+        )
+        .scalar()
+    )
+
+    actual_minutes = total_seconds / 60
+
+    remaining_minutes = max(task.planned_minutes - actual_minutes,0)
+
+    progress_percentage = (actual_minutes / task.planned_minutes) * 100
+
+    progress_percentage = min(progress_percentage,100)
+
+    return TaskProgressResponse(
+        task_id=task.id,
+        planned_minutes=task.planned_minutes,
+        actual_minutes=round(actual_minutes, 2),
+        remaining_minutes=round(remaining_minutes, 2),
+        progress_percentage=round(progress_percentage, 2),
+    )

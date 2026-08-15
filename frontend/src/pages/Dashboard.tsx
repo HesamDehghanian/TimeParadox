@@ -17,9 +17,18 @@ import type {
 
 import Timer from "../components/timer/Timer"
 
+import TaskSelector from "../components/timer/TaskSelector"
+
+import {
+    getTasks,
+} from "../api/tasks"
+
+import type {
+    Task,
+} from "../api/tasks"
+
 
 function Dashboard() {
-
 
     const [plan, setPlan] = useState<DailyPlan | null>(null)
 
@@ -27,43 +36,116 @@ function Dashboard() {
 
     const [error, setError] = useState<string | null>(null)
 
+    const [tasks, setTasks] = useState<Task[]>([])
 
+    const [selectedTaskId, setSelectedTaskId] =
+        useState<number | null>(null)
+
+
+    // -------------------------
+    // Load today's plan
+    // -------------------------
+
+    async function loadPlan() {
+
+        try {
+
+            const data = await getTodayPlan()
+
+            setPlan(data)
+
+        } catch (error) {
+
+            console.error(error)
+
+            setError(
+                "Failed to load today's plan"
+            )
+
+        } finally {
+
+            setLoading(false)
+
+        }
+    }
+
+
+    // -------------------------
+    // Reload plan after timer stop
+    // -------------------------
+
+    async function reloadPlan() {
+
+        try {
+
+            const data = await getTodayPlan()
+
+            setPlan(data)
+
+        } catch (error) {
+
+            console.error(
+                "Failed to reload today's plan",
+                error
+            )
+
+        }
+    }
+
+
+    // -------------------------
+    // Initial plan load
+    // -------------------------
 
     useEffect(() => {
 
-        async function loadPlan(){
+        loadPlan()
+
+    }, [])
+
+
+    // -------------------------
+    // Load tasks
+    // -------------------------
+
+    useEffect(() => {
+
+        async function loadTasks() {
 
             try {
 
-                const data = await getTodayPlan()
-
-                setPlan(data)
-
-            }
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            catch(error){
-
-                setError(
-                    "Failed to load today's plan"
+                const data = await getTasks(
+                    plan?.date
                 )
 
-            }
-            finally{
+                setTasks(data)
 
-                setLoading(false)
+            } catch (error) {
+
+                console.error(
+                    "Failed to load tasks",
+                    error
+                )
 
             }
 
         }
 
 
-        loadPlan()
+        if (plan) {
 
-    },[])
+            loadTasks()
+
+        }
+
+    }, [plan])
 
 
+    // -------------------------
+    // Loading
+    // -------------------------
 
-    if(loading){
+    if (loading) {
 
         return (
             <h2 className="text-xl">
@@ -74,8 +156,11 @@ function Dashboard() {
     }
 
 
+    // -------------------------
+    // Error
+    // -------------------------
 
-    if(error){
+    if (error) {
 
         return (
             <h2 className="text-red-500">
@@ -86,14 +171,20 @@ function Dashboard() {
     }
 
 
+    // -------------------------
+    // No plan
+    // -------------------------
 
-    if(!plan){
+    if (!plan) {
 
         return null
 
     }
 
 
+    // -------------------------
+    // UI
+    // -------------------------
 
     return (
 
@@ -101,16 +192,12 @@ function Dashboard() {
 
             <div className="mb-8">
 
-
                 <h1 className="
                     text-3xl
                     font-bold
                 ">
                     {plan.day_name}'s Plan
                 </h1>
-                <div className="mb-8">
-                    <Timer taskId={1} />
-                </div>
 
 
                 <p className="
@@ -130,11 +217,38 @@ function Dashboard() {
                     m
                 </p>
 
+            </div>
+
+
+            {/* Task Selector */}
+
+            <div className="
+                mb-4
+                max-w-xl
+            ">
+
+                <TaskSelector
+                    tasks={tasks}
+                    selectedTaskId={selectedTaskId}
+                    onSelect={setSelectedTaskId}
+                />
 
             </div>
 
 
+            {/* Timer */}
 
+            <div className="mb-8">
+
+                <Timer
+                    taskId={selectedTaskId}
+                    onTimerStopped={reloadPlan}
+                />
+
+            </div>
+
+
+            {/* Time Cards */}
 
             <div className="
                 grid
@@ -143,33 +257,39 @@ function Dashboard() {
                 gap-6
             ">
 
-
                 {
                     plan.items.map(
                         item => (
 
                             <TimeCard
                                 key={item.category_id}
-                                category_name={item.category_name}
-                                planned_minutes={item.planned_minutes}
-                                actual_minutes={item.actual_minutes}
-                                remaining_minutes={item.remaining_minutes}
-                                progress_percent={item.progress_percent}
+                                category_name={
+                                    item.category_name
+                                }
+                                planned_minutes={
+                                    item.planned_minutes
+                                }
+                                actual_minutes={
+                                    item.actual_minutes
+                                }
+                                remaining_minutes={
+                                    item.remaining_minutes
+                                }
+                                progress_percent={
+                                    item.progress_percent
+                                }
                             />
 
                         )
                     )
                 }
 
-
             </div>
-
 
         </div>
 
     )
 }
-
 
 
 export default Dashboard

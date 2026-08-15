@@ -16,6 +16,7 @@ import type {
 
 interface TimerProps {
     taskId: number | null
+    onTimerStopped?: () => void
 }
 
 
@@ -47,6 +48,7 @@ function formatTime(totalSeconds: number) {
 
 function Timer({
     taskId,
+    onTimerStopped,
 }: TimerProps) {
 
     const [
@@ -188,6 +190,7 @@ function Timer({
                 started_at: null,
                 elapsed_seconds: null,
             })
+            onTimerStopped?.()
 
         }
         finally {

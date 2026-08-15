@@ -15,6 +15,7 @@ import type {
     DailyPlan
 } from "../types/dashboard"
 
+import Timer from "../components/timer/Timer"
 
 
 function Dashboard() {
@@ -98,7 +99,6 @@ function Dashboard() {
 
         <div>
 
-
             <div className="mb-8">
 
 
@@ -108,6 +108,9 @@ function Dashboard() {
                 ">
                     {plan.day_name}'s Plan
                 </h1>
+                <div className="mb-8">
+                    <Timer taskId={1} />
+                </div>
 
 
                 <p className="

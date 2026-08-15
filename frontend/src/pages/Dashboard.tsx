@@ -39,6 +39,7 @@ function Dashboard() {
                 setPlan(data)
 
             }
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
             catch(error){
 
                 setError(
@@ -145,19 +146,12 @@ function Dashboard() {
                         item => (
 
                             <TimeCard
-
-                                key={
-                                    item.category_id
-                                }
-
-                                category_name={
-                                    item.category_name
-                                }
-
-                                planned_minutes={
-                                    item.planned_minutes
-                                }
-
+                                key={item.category_id}
+                                category_name={item.category_name}
+                                planned_minutes={item.planned_minutes}
+                                actual_minutes={item.actual_minutes}
+                                remaining_minutes={item.remaining_minutes}
+                                progress_percent={item.progress_percent}
                             />
 
                         )

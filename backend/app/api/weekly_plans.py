@@ -1,12 +1,25 @@
+from datetime import date, timedelta
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from datetime import date
 
 from backend.app.database.database import SessionLocal
 from backend.app.models.category import Category
+from backend.app.models.task import Task
+from backend.app.models.time_session import TimeSession
 from backend.app.models.weekly_plan import WeeklyPlan
 from backend.app.models.weekly_plan_item import WeeklyPlanItem
-from backend.app.schemas.weekly_plan import WeeklyPlanCreate, WeeklyPlanResponse
+
+from backend.app.schemas.weekly_plan import (
+    WeeklyPlanCreate,
+    WeeklyPlanResponse,
+)
+
+from backend.app.schemas.weekly_dashboard import (
+    WeeklyDashboardResponse,
+    WeeklyDashboardDay,
+    WeeklyDashboardItem,
+)
 
 
 router = APIRouter(
@@ -58,6 +71,142 @@ def create_weekly_plan(data: WeeklyPlanCreate, db: Session = Depends(get_db)):
 
     return plan
 
+DAY_NAMES = [
+    "Saturday",
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+]
+
+
+@router.get(
+    "/{week_start}/dashboard",
+    response_model=WeeklyDashboardResponse,
+)
+def get_weekly_dashboard(
+    week_start: date,
+    db: Session = Depends(get_db),
+):
+
+    plan = (
+        db.query(WeeklyPlan)
+        .filter(
+            WeeklyPlan.week_start == week_start
+        )
+        .first()
+    )
+
+    if not plan:
+        raise HTTPException(
+            status_code=404,
+            detail="Weekly plan not found",
+        )
+
+    days = []
+
+    for day_of_week in range(7):
+
+        current_date = (
+            week_start
+            + timedelta(days=day_of_week)
+        )
+
+        plan_items = (
+            db.query(WeeklyPlanItem)
+            .filter(
+                WeeklyPlanItem.weekly_plan_id == plan.id,
+                WeeklyPlanItem.day_of_week == day_of_week,
+            )
+            .all()
+        )
+
+        dashboard_items = []
+
+        for item in plan_items:
+
+            category = (
+                db.query(Category)
+                .filter(
+                    Category.id == item.category_id
+                )
+                .first()
+            )
+
+            if not category:
+                continue
+
+            tasks = (
+                db.query(Task)
+                .filter(
+                    Task.category_id == item.category_id,
+                    Task.date == current_date,
+                )
+                .all()
+            )
+
+            actual_seconds = 0
+
+            for task in tasks:
+
+                sessions = (
+                    db.query(TimeSession)
+                    .filter(
+                        TimeSession.task_id == task.id,
+                        TimeSession.duration_seconds.isnot(None),
+                    )
+                    .all()
+                )
+
+                for session in sessions:
+
+                    actual_seconds += (
+                        session.duration_seconds or 0
+                    )
+
+            actual_minutes = actual_seconds // 60
+
+            remaining_minutes = max(
+                item.planned_minutes - actual_minutes,
+                0,
+            )
+
+            if item.planned_minutes > 0:
+                progress_percent = min((actual_minutes / item.planned_minutes) * 100, 100)
+
+            else:
+                progress_percent = 0
+
+            dashboard_items.append(
+                WeeklyDashboardItem(
+                    category_id=item.category_id,
+                    category_name=category.name,
+                    planned_minutes=item.planned_minutes,
+                    actual_minutes=actual_minutes,
+                    remaining_minutes=remaining_minutes,
+                    progress_percent=progress_percent,
+                )
+            )
+
+        days.append(
+            WeeklyDashboardDay(
+                date=current_date,
+                day_of_week=day_of_week,
+                day_name=DAY_NAMES[day_of_week],
+                items=dashboard_items,
+            )
+        )
+
+    return WeeklyDashboardResponse(
+        week_start=plan.week_start,
+        week_end=plan.week_end,
+        days=days,
+    )
+
+
+
 @router.get("/{week_start}",response_model=WeeklyPlanResponse)
 def get_weekly_plan(week_start: date, db: Session = Depends(get_db)):
 
@@ -66,3 +215,5 @@ def get_weekly_plan(week_start: date, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Weekly plan not found")
 
     return plan
+
+

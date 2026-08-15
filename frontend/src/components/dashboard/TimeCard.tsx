@@ -22,6 +22,20 @@ function formatMinutes(minutes: number) {
 
     return `${hours}h ${remainingMinutes}m`
 }
+function formatProgress(
+    progress: number
+) {
+
+    if (progress === 0) {
+        return "0%"
+    }
+
+    if (progress < 1) {
+        return `${progress.toFixed(1)}%`
+    }
+
+    return `${Math.round(progress)}%`
+}
 
 
 function TimeCard({
@@ -61,7 +75,7 @@ function TimeCard({
                     font-semibold
                     text-gray-500
                 ">
-                    {Math.round(progress_percent)}%
+                    {formatProgress(progress_percent)}
                 </span>
 
             </div>
@@ -84,7 +98,7 @@ function TimeCard({
                         duration-500
                     "
                     style={{
-                        width: `${progress_percent}%`,
+                        width: `${Math.min(progress_percent, 100)}%`,
                     }}
                 />
 

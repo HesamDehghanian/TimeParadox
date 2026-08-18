@@ -13,6 +13,7 @@ import type {
     WeeklyDashboard as WeeklyDashboardData,
 } from "../types/weeklyDashboard"
 
+
 function formatDate(date: Date): string {
 
     const year =
@@ -31,16 +32,56 @@ function formatDate(date: Date): string {
     return `${year}-${month}-${day}`
 }
 
+
 function WeeklyDashboard() {
 
     const [dashboard, setDashboard] =
-    useState<WeeklyDashboardData | null>(null)
+        useState<WeeklyDashboardData | null>(null)
 
     const [loading, setLoading] =
         useState(true)
 
     const [error, setError] =
         useState<string | null>(null)
+
+    const [weekStart, setWeekStart] =
+        useState(() => {
+
+            const today = new Date()
+
+            const day = today.getDay()
+
+            const daysSinceSaturday =
+                (day + 1) % 7
+
+            const saturday =
+                new Date(today)
+
+            saturday.setDate(
+                today.getDate()
+                - daysSinceSaturday
+            )
+
+            return formatDate(saturday)
+        })
+
+
+    function changeWeek(offset: number) {
+
+        const current =
+            new Date(
+                `${weekStart}T12:00:00`
+            )
+
+        current.setDate(
+            current.getDate()
+            + offset * 7
+        )
+
+        setWeekStart(
+            formatDate(current)
+        )
+    }
 
 
     useEffect(() => {
@@ -49,22 +90,8 @@ function WeeklyDashboard() {
 
             try {
 
-                const today = new Date()
-
-                const day = today.getDay()
-
-                const daysSinceSaturday =
-                    (day + 1) % 7
-
-                const saturday = new Date(today)
-
-                saturday.setDate(
-                    today.getDate()
-                    - daysSinceSaturday
-                )
-
-                const weekStart =
-                    formatDate(saturday)
+                setLoading(true)
+                setError(null)
 
                 const data =
                     await getWeeklyDashboard(
@@ -91,7 +118,7 @@ function WeeklyDashboard() {
 
         loadDashboard()
 
-    }, [])
+    }, [weekStart])
 
 
     if (loading) {
@@ -127,31 +154,72 @@ function WeeklyDashboard() {
 
         <div>
 
-            <div className="mb-8">
+            {/* Header */}
 
-                <h1 className="
-                    text-3xl
-                    font-bold
-                    text-gray-900
-                ">
-                    This Week
-                </h1>
+            <div className="
+                flex
+                items-center
+                justify-between
+                mb-8
+            ">
 
-                <p className="
-                    mt-2
-                    text-gray-500
-                ">
-                    {
-                        dashboard.week_start
-                    }
-                    {" → "}
-                    {
-                        dashboard.week_end
-                    }
-                </p>
+                <button
+                    onClick={() => changeWeek(-1)}
+                    className="
+                        rounded-xl
+                        bg-white
+                        px-4
+                        py-2
+                        shadow-sm
+                        border
+                        hover:bg-gray-50
+                    "
+                >
+                    ← Previous
+                </button>
+
+
+                <div className="text-center">
+
+                    <h1 className="
+                        text-3xl
+                        font-bold
+                        text-gray-900
+                    ">
+                        Weekly Dashboard
+                    </h1>
+
+                    <p className="
+                        mt-2
+                        text-gray-500
+                    ">
+                        {dashboard.week_start}
+                        {" → "}
+                        {dashboard.week_end}
+                    </p>
+
+                </div>
+
+
+                <button
+                    onClick={() => changeWeek(1)}
+                    className="
+                        rounded-xl
+                        bg-white
+                        px-4
+                        py-2
+                        shadow-sm
+                        border
+                        hover:bg-gray-50
+                    "
+                >
+                    Next →
+                </button>
 
             </div>
 
+
+            {/* Days */}
 
             <div className="
                 grid

@@ -41,6 +41,11 @@ function Dashboard() {
     const [selectedTaskId, setSelectedTaskId] =
         useState<number | null>(null)
 
+    const [
+        liveElapsedSeconds,
+        setLiveElapsedSeconds,
+    ] = useState(0)
+
 
     // -------------------------
     // Load today's plan
@@ -180,6 +185,7 @@ function Dashboard() {
         return null
 
     }
+    const selectedTask = tasks.find(task => task.id === selectedTaskId)
 
 
     // -------------------------
@@ -243,6 +249,7 @@ function Dashboard() {
                 <Timer
                     taskId={selectedTaskId}
                     onTimerStopped={reloadPlan}
+                    onElapsedChange={setLiveElapsedSeconds}
                 />
 
             </div>
@@ -258,30 +265,47 @@ function Dashboard() {
             ">
 
                 {
-                    plan.items.map(
-                        item => (
+                    plan.items.map(item => {
 
+                        const isActiveCategory =
+                            selectedTask?.category_id === item.category_id
+
+                        const liveActualMinutes =
+                            isActiveCategory
+                                ? item.actual_minutes +
+                                  liveElapsedSeconds / 60
+                                : item.actual_minutes
+
+                        const liveRemainingMinutes =
+                            Math.max(
+                                item.planned_minutes -
+                                liveActualMinutes,
+                                0
+                            )
+
+                        const liveProgressPercent =
+                            item.planned_minutes > 0
+                                ? Math.min(
+                                    (
+                                        liveActualMinutes /
+                                        item.planned_minutes
+                                    ) * 100,
+                                    100
+                                )
+                                : 0
+
+
+                        return (
                             <TimeCard
                                 key={item.category_id}
-                                category_name={
-                                    item.category_name
-                                }
-                                planned_minutes={
-                                    item.planned_minutes
-                                }
-                                actual_minutes={
-                                    item.actual_minutes
-                                }
-                                remaining_minutes={
-                                    item.remaining_minutes
-                                }
-                                progress_percent={
-                                    item.progress_percent
-                                }
+                                category_name={item.category_name}
+                                planned_minutes={item.planned_minutes}
+                                actual_minutes={liveActualMinutes}
+                                remaining_minutes={liveRemainingMinutes}
+                                progress_percent={liveProgressPercent}
                             />
-
                         )
-                    )
+                    })
                 }
 
             </div>

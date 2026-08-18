@@ -14,9 +14,14 @@ import type {
 } from "../../types/timer"
 
 
+// interface TimerProps {
+//     taskId: number | null
+//     onTimerStopped?: () => void
+// }
 interface TimerProps {
     taskId: number | null
     onTimerStopped?: () => void
+    onElapsedChange?: (elapsedSeconds: number) => void
 }
 
 
@@ -45,10 +50,10 @@ function formatTime(totalSeconds: number) {
         .join(":")
 }
 
-
 function Timer({
     taskId,
     onTimerStopped,
+    onElapsedChange,
 }: TimerProps) {
 
     const [
@@ -80,6 +85,14 @@ function Timer({
                     await getActiveTimer()
 
                 setTimer(data)
+                if (
+                    data.active &&
+                    data.elapsed_seconds !== null
+                ) {
+                    onElapsedChange?.(
+                        data.elapsed_seconds
+                    )
+                }
 
             }
             finally {
@@ -121,10 +134,14 @@ function Timer({
                         }
 
 
+                        const nextElapsed =
+                            current.elapsed_seconds + 1
+
+                        onElapsedChange?.(nextElapsed)
+
                         return {
                             ...current,
-                            elapsed_seconds:
-                                current.elapsed_seconds + 1,
+                            elapsed_seconds: nextElapsed,
                         }
 
                     }
@@ -163,6 +180,7 @@ function Timer({
                 started_at: session.started_at,
                 elapsed_seconds: 0,
             })
+            onElapsedChange?.(0)
 
         }
         finally {
@@ -182,6 +200,7 @@ function Timer({
             setActionLoading(true)
 
             await stopTimer()
+            onElapsedChange?.(0)
 
             setTimer({
                 active: false,

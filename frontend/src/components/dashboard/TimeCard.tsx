@@ -9,8 +9,10 @@ interface TimeCardProps {
 
 function formatMinutes(minutes: number) {
 
-    const hours = Math.floor(minutes / 60)
-    const remainingMinutes = minutes % 60
+    const roundedMinutes = Math.round(minutes)
+
+    const hours = Math.floor(roundedMinutes / 60)
+    const remainingMinutes = roundedMinutes % 60
 
     if (hours === 0) {
         return `${remainingMinutes}m`
@@ -22,6 +24,7 @@ function formatMinutes(minutes: number) {
 
     return `${hours}h ${remainingMinutes}m`
 }
+
 function formatProgress(
     progress: number
 ) {

@@ -22,6 +22,7 @@ interface TimerProps {
     taskId: number | null
     onTimerStopped?: () => void
     onElapsedChange?: (elapsedSeconds: number) => void
+    onTimerStateChange?: (running: boolean) => void
 }
 
 
@@ -54,6 +55,7 @@ function Timer({
     taskId,
     onTimerStopped,
     onElapsedChange,
+    onTimerStateChange,
 }: TimerProps) {
 
     const [
@@ -78,27 +80,16 @@ function Timer({
     useEffect(() => {
 
         async function loadTimer() {
-
             try {
-
-                const data =
-                    await getActiveTimer()
-
+                const data = await getActiveTimer()
                 setTimer(data)
-                if (
-                    data.active &&
-                    data.elapsed_seconds !== null
-                ) {
-                    onElapsedChange?.(
-                        data.elapsed_seconds
-                    )
+                onTimerStateChange?.(data.active)
+                if (data.active && data.elapsed_seconds !== null) {
+                    onElapsedChange?.(data.elapsed_seconds)
                 }
-
             }
             finally {
-
                 setLoading(false)
-
             }
         }
 
@@ -111,51 +102,44 @@ function Timer({
 
     useEffect(() => {
 
-        if (
-            !timer?.active ||
-            timer.elapsed_seconds === null
-        ) {
-            return
-        }
+            if (
+                !timer?.active ||
+                timer.elapsed_seconds === null
+            ) {
+                return
+            }
 
+            const interval = window.setInterval(() => {
 
-        const interval =
-            window.setInterval(() => {
+                setTimer(current => {
 
-                setTimer(
-                    current => {
-
-                        if (
-                            !current ||
-                            !current.active ||
-                            current.elapsed_seconds === null
-                        ) {
-                            return current
-                        }
-
-
-                        const nextElapsed =
-                            current.elapsed_seconds + 1
-
-                        onElapsedChange?.(nextElapsed)
-
-                        return {
-                            ...current,
-                            elapsed_seconds: nextElapsed,
-                        }
-
+                    if (
+                        !current ||
+                        !current.active ||
+                        current.elapsed_seconds === null
+                    ) {
+                        return current
                     }
-                )
+
+                    const nextElapsed =
+                        current.elapsed_seconds + 1
+
+                    onElapsedChange?.(nextElapsed)
+
+                    return {
+                        ...current,
+                        elapsed_seconds: nextElapsed,
+                    }
+
+                })
 
             }, 1000)
 
+            return () => {
+                window.clearInterval(interval)
+            }
 
-        return () => {
-            window.clearInterval(interval)
-        }
-
-    }, [timer?.active])
-
+        }, [timer?.active, onElapsedChange])
 
 
     async function handleStart() {
@@ -164,14 +148,9 @@ function Timer({
             return
         }
 
-
         try {
-
             setActionLoading(true)
-
-            const session =
-                await startTimer(taskId)
-
+            const session = await startTimer(taskId)
 
             setTimer({
                 active: true,
@@ -180,25 +159,19 @@ function Timer({
                 started_at: session.started_at,
                 elapsed_seconds: 0,
             })
+            onTimerStateChange?.(true)
             onElapsedChange?.(0)
-
         }
         finally {
-
             setActionLoading(false)
-
         }
-
     }
-
 
 
     async function handleStop() {
 
         try {
-
             setActionLoading(true)
-
             await stopTimer()
             onElapsedChange?.(0)
 
@@ -209,38 +182,27 @@ function Timer({
                 started_at: null,
                 elapsed_seconds: null,
             })
+            onTimerStateChange?.(false)
+            onElapsedChange?.(0)
             onTimerStopped?.()
-
         }
         finally {
-
             setActionLoading(false)
-
         }
-
     }
 
 
-
     if (loading) {
-
         return (
             <div>
                 Loading timer...
             </div>
         )
-
     }
 
-
-
-    const elapsedSeconds =
-        timer?.elapsed_seconds ?? 0
-
-
+    const elapsedSeconds = timer?.elapsed_seconds ?? 0
 
     return (
-
         <div className="
             rounded-2xl
             bg-white

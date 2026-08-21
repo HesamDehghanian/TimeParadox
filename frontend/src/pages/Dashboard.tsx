@@ -41,6 +41,9 @@ function Dashboard() {
     const [selectedTaskId, setSelectedTaskId] =
         useState<number | null>(null)
 
+    const [timerIsRunning, setTimerIsRunning] =
+    useState(false)
+
     const [
         liveElapsedSeconds,
         setLiveElapsedSeconds,
@@ -237,6 +240,7 @@ function Dashboard() {
                     tasks={tasks}
                     selectedTaskId={selectedTaskId}
                     onSelect={setSelectedTaskId}
+                    disabled={timerIsRunning}
                 />
 
             </div>
@@ -250,6 +254,7 @@ function Dashboard() {
                     taskId={selectedTaskId}
                     onTimerStopped={reloadPlan}
                     onElapsedChange={setLiveElapsedSeconds}
+                    onTimerStateChange={setTimerIsRunning}
                 />
 
             </div>
@@ -267,13 +272,12 @@ function Dashboard() {
                 {
                     plan.items.map(item => {
 
-                        const isActiveCategory =
-                            selectedTask?.category_id === item.category_id
+                        const isActiveCategory = selectedTask?.category_id === item.category_id
 
                         const liveActualMinutes =
                             isActiveCategory
                                 ? item.actual_minutes +
-                                  liveElapsedSeconds / 60
+                                  Math.floor(liveElapsedSeconds / 60)
                                 : item.actual_minutes
 
                         const liveRemainingMinutes =

@@ -1,14 +1,15 @@
+import {
+    NavLink,
+} from "react-router-dom"
+
+
 interface MainLayoutProps {
     children: React.ReactNode
-    currentPage: "today" | "week"
-    onNavigate: (page: "today" | "week") => void
 }
 
 
 function MainLayout({
     children,
-    currentPage,
-    onNavigate,
 }: MainLayoutProps) {
 
     return (
@@ -20,20 +21,21 @@ function MainLayout({
 
             <header className="
                 bg-white
-                shadow
-                px-8
-                py-4
+                shadow-sm
             ">
 
                 <div className="
                     flex
                     items-center
                     justify-between
+                    px-8
+                    py-4
                 ">
 
                     <h1 className="
                         text-2xl
                         font-bold
+                        text-gray-900
                     ">
                         TimeParadox 🚀
                     </h1>
@@ -41,51 +43,57 @@ function MainLayout({
 
                     <nav className="
                         flex
+                        items-center
                         gap-2
                     ">
 
-                        <button
-                            onClick={() =>
-                                onNavigate("today")
-                            }
-                            className={`
+                        <NavLink
+                            to="/"
+                            end
+                            className={({
+                                isActive,
+                            }) =>
+                                `
                                 rounded-lg
                                 px-4
                                 py-2
                                 text-sm
-                                font-medium
+                                font-semibold
                                 transition
                                 ${
-                                    currentPage === "today"
-                                        ? "bg-blue-500 text-white"
+                                    isActive
+                                        ? "bg-gray-900 text-white"
                                         : "text-gray-600 hover:bg-gray-100"
                                 }
-                            `}
+                                `
+                            }
                         >
                             Today
-                        </button>
+                        </NavLink>
 
 
-                        <button
-                            onClick={() =>
-                                onNavigate("week")
-                            }
-                            className={`
+                        <NavLink
+                            to="/weekly"
+                            className={({
+                                isActive,
+                            }) =>
+                                `
                                 rounded-lg
                                 px-4
                                 py-2
                                 text-sm
-                                font-medium
+                                font-semibold
                                 transition
                                 ${
-                                    currentPage === "week"
-                                        ? "bg-blue-500 text-white"
+                                    isActive
+                                        ? "bg-gray-900 text-white"
                                         : "text-gray-600 hover:bg-gray-100"
                                 }
-                            `}
+                                `
+                            }
                         >
-                            Week
-                        </button>
+                            Weekly
+                        </NavLink>
 
                     </nav>
 

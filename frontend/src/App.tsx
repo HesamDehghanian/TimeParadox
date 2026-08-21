@@ -1,34 +1,49 @@
 import {
-    useState,
-} from "react"
+    BrowserRouter,
+    Navigate,
+    Route,
+    Routes,
+} from "react-router-dom"
 
 import Dashboard from "./pages/Dashboard"
-
 import WeeklyDashboard from "./pages/WeeklyDashboard"
-
 import MainLayout from "./components/layout/MainLayout"
 
 
 function App() {
 
-    const [currentPage, setCurrentPage] =
-        useState<"today" | "week">("today")
-
-
     return (
+        <BrowserRouter>
 
-        <MainLayout
-            currentPage={currentPage}
-            onNavigate={setCurrentPage}
-        >
+            <MainLayout>
 
-            {
-                currentPage === "today"
-                    ? <Dashboard />
-                    : <WeeklyDashboard />
-            }
+                <Routes>
 
-        </MainLayout>
+                    <Route
+                        path="/"
+                        element={<Dashboard />}
+                    />
+
+                    <Route
+                        path="/weekly"
+                        element={<WeeklyDashboard />}
+                    />
+
+                    <Route
+                        path="*"
+                        element={
+                            <Navigate
+                                to="/"
+                                replace
+                            />
+                        }
+                    />
+
+                </Routes>
+
+            </MainLayout>
+
+        </BrowserRouter>
     )
 }
 

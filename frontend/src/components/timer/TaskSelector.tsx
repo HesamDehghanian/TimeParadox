@@ -4,7 +4,7 @@ import type { Task } from "../../api/tasks"
 interface TaskSelectorProps {
     tasks: Task[]
     selectedTaskId: number | null
-    onSelect: (taskId: number) => void
+    onSelect: (taskId: number | null) => void
     disabled?: boolean
 }
 
@@ -23,12 +23,11 @@ function TaskSelector({
                 mb-2
                 block
                 text-sm
-                font-medium
+                font-semibold
                 text-gray-700
             ">
-                What are you working on?
+                Task
             </label>
-
 
             <select
                 value={selectedTaskId ?? ""}
@@ -37,6 +36,7 @@ function TaskSelector({
                     const value = event.target.value
 
                     if (!value) {
+                        onSelect(null)
                         return
                     }
 
@@ -52,18 +52,21 @@ function TaskSelector({
                     px-4
                     py-3
                     text-gray-900
+                    shadow-sm
                     outline-none
+                    transition
                     focus:border-blue-500
+                    disabled:cursor-not-allowed
                     disabled:bg-gray-100
+                    disabled:text-gray-400
                 "
             >
 
                 <option value="">
-                    Select a task
+                    Select a task...
                 </option>
 
-
-                {tasks.map(task => (
+                {tasks.map((task) => (
 
                     <option
                         key={task.id}
@@ -75,6 +78,18 @@ function TaskSelector({
                 ))}
 
             </select>
+
+            {disabled && (
+
+                <p className="
+                    mt-2
+                    text-sm
+                    text-gray-500
+                ">
+                    Stop the timer before changing the task.
+                </p>
+
+            )}
 
         </div>
     )

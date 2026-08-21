@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from starlette import status
-
+from datetime import date
+from fastapi import Query
 from backend.app.database.database import SessionLocal
 from backend.app.models.category import Category
 from backend.app.models.task import Task
@@ -44,9 +45,28 @@ def create_task(task_data: TaskCreate, db: Session = Depends(get_db)):
 
     return task
 
+
 @router.get("",response_model=list[TaskResponse])
-def get_tasks(db: Session = Depends(get_db)):
-    return db.query(Task).all()
+def get_tasks(
+    date: date | None = Query(default=None),
+    db: Session = Depends(get_db),
+):
+
+    query = db.query(Task)
+
+    if date is not None:
+        query = query.filter(
+            Task.date == date
+        )
+
+    return (
+        query
+        .order_by(
+            Task.date.asc(),
+            Task.created_at.asc(),
+        )
+        .all()
+    )
 
 @router.get("/{task_id}", response_model=TaskResponse)
 def get_task(task_id: int, db: Session = Depends(get_db)):

@@ -1,18 +1,21 @@
 import {
     BrowserRouter,
-    Navigate,
-    Route,
     Routes,
+    Route,
+    Navigate
 } from "react-router-dom"
+
+import MainLayout from "./components/layout/MainLayout"
 
 import Dashboard from "./pages/Dashboard"
 import WeeklyDashboard from "./pages/WeeklyDashboard"
-import MainLayout from "./components/layout/MainLayout"
+import Categories from "./pages/Categories"
 
 
 function App() {
 
     return (
+
         <BrowserRouter>
 
             <MainLayout>
@@ -30,6 +33,10 @@ function App() {
                     />
 
                     <Route
+                        path="/categories"
+                        element={<Categories />}
+                    />
+                    <Route
                         path="*"
                         element={
                             <Navigate
@@ -44,6 +51,7 @@ function App() {
             </MainLayout>
 
         </BrowserRouter>
+
     )
 }
 

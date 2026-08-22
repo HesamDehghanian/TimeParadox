@@ -22,6 +22,16 @@ import {
     updateWeeklyPlan,
 } from "../api/weeklyPlans"
 
+import {
+    getTasksByDate,
+} from "../api/tasks"
+
+import type {
+    Task,
+} from "../api/tasks"
+
+import CreateTaskModal from "../components/planner/CreateTaskModal"
+
 const DAY_NAMES = [
     "Saturday",
     "Sunday",
@@ -92,6 +102,7 @@ function formatDisplayDate(
 }
 
 
+
 function Planner() {
 
     const [
@@ -155,16 +166,53 @@ function Planner() {
     const weekStartString =
         formatDate(weekStart)
 
+    const [
+        taskModal,
+        setTaskModal,
+    ] = useState<{
+        category: Category
+        date: string
+    } | null>(null)
+
+
+    const [
+        tasks,
+        setTasks,
+    ] = useState<Task[]>([])
+
+    function getCellTasks(
+        categoryId: number,
+        dayOfWeek: number
+    ): Task[] {
+
+        const date =
+            new Date(weekStart)
+
+        date.setDate(
+            date.getDate() + dayOfWeek
+        )
+
+        const dateString =
+            formatDate(date)
+
+        return tasks.filter(
+            task =>
+                task.category_id
+                === categoryId
+                &&
+                task.date
+                === dateString
+        )
+    }
+
 
     async function loadPlanner() {
 
         try {
-
             setLoading(true)
             setError(null)
 
-            const categoryData =
-                await getCategories()
+            const categoryData = await getCategories()
 
             setCategories(
                 categoryData.filter(
@@ -172,10 +220,34 @@ function Planner() {
                         category.is_active
                 )
             )
+            const weekTasks: Task[] = []
+
+            for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
+
+                const date =
+                    new Date(weekStart)
+
+                date.setDate(
+                    date.getDate() + dayIndex
+                )
+
+                const dateString =
+                    formatDate(date)
+
+                const dayTasks =
+                    await getTasksByDate(
+                        dateString
+                    )
+
+                weekTasks.push(
+                    ...dayTasks
+                )
+            }
+
+            setTasks(weekTasks)
 
 
             try {
-
                 const plan =
                     await getWeeklyPlan(
                         weekStartString
@@ -222,9 +294,7 @@ function Planner() {
 
 
     useEffect(() => {
-
         loadPlanner()
-
     }, [weekStartString])
 
 
@@ -968,6 +1038,77 @@ function Planner() {
                                                             "
                                                         />
 
+                                                        {getCellTasks(
+                                                            category.id,
+                                                            dayIndex
+                                                        ).map(task => (
+
+                                                            <div
+                                                                key={task.id}
+                                                                className="
+                                                                    mt-2
+                                                                    rounded-lg
+                                                                    bg-gray-50
+                                                                    px-2
+                                                                    py-2
+                                                                    text-left
+                                                                "
+                                                            >
+
+                                                                <div className="
+                                                                    truncate
+                                                                    text-xs
+                                                                    font-semibold
+                                                                    text-gray-700
+                                                                ">
+                                                                    {task.title}
+                                                                </div>
+
+                                                                <div className="
+                                                                    mt-1
+                                                                    text-[10px]
+                                                                    text-gray-400
+                                                                ">
+                                                                    {task.planned_minutes}m
+                                                                </div>
+
+                                                            </div>
+
+                                                        ))}
+
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+
+                                                                const date =
+                                                                    new Date(weekStart)
+
+                                                                date.setDate(
+                                                                    date.getDate()
+                                                                    + dayIndex
+                                                                )
+
+                                                                setTaskModal({
+                                                                    category,
+                                                                    date: formatDate(date),
+                                                                })
+                                                            }}
+                                                            className="
+                                                                mt-2
+                                                                w-full
+                                                                rounded-lg
+                                                                py-1.5
+                                                                text-xs
+                                                                font-semibold
+                                                                text-gray-400
+                                                                transition
+                                                                hover:bg-gray-100
+                                                                hover:text-gray-700
+                                                            "
+                                                        >
+                                                            + Task
+                                                        </button>
+
                                                         {minutes >
                                                             0 && (
 
@@ -1117,8 +1258,28 @@ function Planner() {
                 </button>
 
             </div>
+            {taskModal && (
+
+                <CreateTaskModal
+                    category={
+                        taskModal.category
+                    }
+                    date={
+                        taskModal.date
+                    }
+                    onClose={() =>
+                        setTaskModal(null)
+                    }
+                    onCreated={async () => {
+                        setTaskModal(null)
+                        await loadPlanner()
+                    }}
+                />
+
+            )}
 
         </div>
+
     )
 }
 

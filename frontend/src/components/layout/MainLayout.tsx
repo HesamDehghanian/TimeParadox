@@ -21,6 +21,10 @@ function MainLayout({ children }: MainLayoutProps) {
             label: "Categories",
             path: "/categories",
         },
+        {
+            label: "Planner",
+            path: "/planner",
+        },
     ]
 
     return (

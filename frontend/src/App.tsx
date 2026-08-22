@@ -10,6 +10,7 @@ import MainLayout from "./components/layout/MainLayout"
 import Dashboard from "./pages/Dashboard"
 import WeeklyDashboard from "./pages/WeeklyDashboard"
 import Categories from "./pages/Categories"
+import Planner from "./pages/Planner"
 
 
 function App() {
@@ -36,6 +37,11 @@ function App() {
                         path="/categories"
                         element={<Categories />}
                     />
+                    <Route
+                        path="/planner"
+                        element={<Planner />}
+                    />
+
                     <Route
                         path="*"
                         element={

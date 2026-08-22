@@ -149,7 +149,6 @@ function WeeklyDashboard() {
 
     }
 
-
     return (
 
         <div>
